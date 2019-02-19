@@ -1,0 +1,86 @@
+<div class="wrapper">
+  <h1>Authentication</h1>
+
+  <div class="ui-g">
+    <div class="ui-g-3">
+      <i class="fab fa-gitlab"></i><br>
+      GitLab<br>
+      <span>Log In</span>
+    </div>
+    <div class="ui-g-3">
+      <i class="fab fa-bitbucket"></i><br>
+      BitBucket<br>
+      <span>Log In</span>
+    </div>
+    <div class="ui-g-3">
+      <i class="fab fa-jira"></i><br>
+      Jira<br>
+      <span>Log In</span>
+    </div>
+    <div class="ui-g-3">
+      <i class="fab fa-trello"></i><br>
+      Trello<br>
+      <span *ngIf="sync_user === undefined || sync_user['trello_auth_token'] === ''" (click)="authTrelloModal()">Log In</span>
+      <span *ngIf="sync_user !== undefined && sync_user['trello_auth_token'] !== ''" (click)="authTrelloModal()">Log Out</span>
+    </div>
+  </div>
+
+  <h1>Synced Boards</h1>
+
+  <span (click)="toggleModalDisplay()">New Synced Board</span>
+
+  <p-table [value]="boards">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Type</th>
+        <th>Glo Board</th>
+        <th>Trello Board</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-board>
+      <tr>
+        <td>{{board['sync-type']}}</td>
+        <td>{{board['glo-board']}}</td>
+        <td>{{board['trello-board']}}</td>
+        <td>edit | delete</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [modal]="true" [(visible)]="tokenModalDisplay">
+  <p-header>
+    Trello Token
+  </p-header>
+  <p>Please enter the authorization token provided by the Trello OAuth window.</p>
+  <input style="width: 100% !important" type="text" pInputText [(ngModel)]="token"/>
+  <p-footer>
+    <button pButton type="button" label="Submit Token" (click)="submitTrelloModal()">Submit Token</button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog [modal]="true" [(visible)]="addModalDisplay">
+  <p-header>
+    Sync Boards
+  </p-header>
+  Please select the boards you'd like to sync. A sync can only be initialized on empty Glo boards with no columns.
+  <div class="ui-g">
+    <div class="ui-g-4">
+      Glo Board<br>
+      <p-dropdown [options]="emptyGloBoards" optionLabel="name" appendTo="body" [(ngModel)]="selectedGloBoard"></p-dropdown>
+    </div>
+    <div class="ui-g-4">
+      Sync With<br>
+      <p-dropdown [options]="syncTypes" appendTo="body" [(ngModel)]="selectedSyncType"></p-dropdown>
+    </div>
+    <div class="ui-g-4">
+      Synced Board<br>
+      <p-dropdown [options]="syncBoards" optionLabel="name" appendTo="body" [(ngModel)]="selectedSyncBoard"></p-dropdown>
+    </div>
+  </div>
+  <p-footer>
+    <button pButton type="button" label="Submit Token" (click)="submitAddModal()">Sync Boards</button>
+  </p-footer>
+</p-dialog>
+
