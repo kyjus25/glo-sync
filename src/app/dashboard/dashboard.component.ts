@@ -183,6 +183,7 @@ export class DashboardComponent {
     // console.log('card #', this.cardCreateCount, 'out of', this.totalCardCreateCount);
     // console.log(this.columnCreateObjects[this.columnCreateCount].name);
     // console.log(this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].name);
+
     const date = new Date(this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].due);
     const stringDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' +  date.getFullYear();
     const convertedCard = {
@@ -195,6 +196,26 @@ export class DashboardComponent {
     };
     this1.http.post('http://localhost:5000/createCard?token=' + this1.auth_token + '&boardId=' +
       this1.selectedGloBoard.id, convertedCard).pipe(delay(7000)).subscribe(createCard => {
+        const createdCard = <any>createCard;
+
+
+
+      this1.http.get('http://localhost:5000/getTrelloCardActions?token=' + this.sync_user['trello_auth_token'] + '&card_id=' +
+        this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].id).subscribe(actionsReturn => {
+        const actions = <any[]>actionsReturn;
+        actions.filter(comment => comment.type === 'commentCard').forEach(comment => {
+          console.log('comment', comment.data.text);
+          const convertedComment = {
+            text: comment.data.text
+          };
+          this1.http.post('http://localhost:5000/createComment?token=' + this1.auth_token + '&boardId=' +
+            this1.selectedGloBoard.id + '&cardId=' + createdCard.id, convertedComment).subscribe(createComment => {
+          });
+        });
+      });
+
+
+
       if (this.cardCreateCount < this.totalCardCreateCount) {
         this.cardCreateCount++;
         this.createCard(currentColumn);
