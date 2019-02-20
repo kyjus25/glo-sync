@@ -164,7 +164,7 @@ export class DashboardComponent {
       name: this.columnCreateObjects[iteration].name
     };
     this1.http.post('http://localhost:5000/createColumn?token=' + this1.auth_token + '&boardId=' +
-      this1.selectedGloBoard.id, convertedColumn).pipe(delay(7000)).subscribe(createCol => {
+      this1.selectedGloBoard.id, convertedColumn).subscribe(createCol => {
         this.cardCreateObjects = this.columnCreateObjects[iteration].cards;
         this.cardCreateCount = 0;
         this.totalCardCreateCount = this.columnCreateObjects[iteration].cards.length - 1;
@@ -195,7 +195,7 @@ export class DashboardComponent {
       column_id: currentColumn.id
     };
     this1.http.post('http://localhost:5000/createCard?token=' + this1.auth_token + '&boardId=' +
-      this1.selectedGloBoard.id, convertedCard).pipe(delay(7000)).subscribe(createCard => {
+      this1.selectedGloBoard.id, convertedCard).subscribe(createCard => {
         const createdCard = <any>createCard;
 
 
