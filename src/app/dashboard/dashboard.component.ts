@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {combineLatest} from 'rxjs/internal/observable/combineLatest';
 import {delay} from 'rxjs/operators';
+const config = require('../../config.json');
 
 @Component({
   selector: 'app-dashboard',
@@ -69,7 +70,7 @@ export class DashboardComponent {
   };
 
   public getUser() {
-    this.http.get('http://localhost:5000/getUser?token=' + this.auth_token).subscribe(glo_user => {
+    this.http.get(config.SERVER + ':5000/getUser?token=' + this.auth_token).subscribe(glo_user => {
       this.glo_user = glo_user;
       if (this.glo_user.message === 'Auth token not provided') {
         this.delete_cookie('auth_token');
@@ -84,7 +85,7 @@ export class DashboardComponent {
   }
 
   public getBoards() {
-    this.http.get('http://localhost:5000/getBoards?token=' + this.auth_token).subscribe(glo_boards => {
+    this.http.get(config.SERVER + ':5000/getBoards?token=' + this.auth_token).subscribe(glo_boards => {
       this.glo_boards = glo_boards;
       if (this.glo_boards.message === 'Auth token not provided') {
         window.location.replace('/#/');
@@ -102,7 +103,7 @@ export class DashboardComponent {
   }
 
   public getSyncUser() {
-    this.http.get('http://localhost:5000/getSyncUser?glo_id=' + this.glo_user.id).subscribe(sync_user => {
+    this.http.get(config.SERVER + ':5000/getSyncUser?glo_id=' + this.glo_user.id).subscribe(sync_user => {
       this.sync_user = sync_user;
       console.log('sync user', this.sync_user);
       if (this.sync_user['trello_auth_token'] !== '') {
@@ -121,21 +122,21 @@ export class DashboardComponent {
     this.tokenModalDisplay = true;
   }
   public submitTrelloModal() {
-    this.http.get('http://localhost:5000/setToken?type=trello&token=' + this.token + '&glo_id=' + this.glo_user.id).subscribe(res => {
+    this.http.get(config.SERVER + ':5000/setToken?type=trello&token=' + this.token + '&glo_id=' + this.glo_user.id).subscribe(res => {
       this.token = '';
       this.tokenModalDisplay = false;
       this.getSyncUser();
     });
   }
   private getTrelloUser() {
-    this.http.get('http://localhost:5000/getTrelloUser?token=' + this.sync_user['trello_auth_token']).subscribe(res => {
+    this.http.get(config.SERVER + ':5000/getTrelloUser?token=' + this.sync_user['trello_auth_token']).subscribe(res => {
       console.log(res);
       this.trello_user = res;
       this.getTrelloBoards();
     });
   }
   private getTrelloBoards() {
-    this.http.get('http://localhost:5000/getTrelloBoards?trello_id=' + this.trello_user.id +
+    this.http.get(config.SERVER + ':5000/getTrelloBoards?trello_id=' + this.trello_user.id +
       '&token=' + this.sync_user['trello_auth_token']).subscribe(res => {
       console.log(res);
       this.trello_boards = res;
@@ -143,7 +144,7 @@ export class DashboardComponent {
   }
 
   public removeToken() {
-    this.http.get('http://localhost:5000/setToken?type=trello&token=&glo_id=' + this.glo_user.id).subscribe(res => {
+    this.http.get(config.SERVER + ':5000/setToken?type=trello&token=&glo_id=' + this.glo_user.id).subscribe(res => {
       this.token = '';
       this.tokenModalDisplay = false;
       this.getSyncUser();
@@ -161,7 +162,7 @@ export class DashboardComponent {
     console.log('selected sync type', this.selectedSyncType);
 
     // Get Trello board information (columns and cards)
-    this.http.get('http://localhost:5000/getTrelloBoardList?board_id=' + this.selectedSyncBoard.id +
+    this.http.get(config.SERVER + ':5000/getTrelloBoardList?board_id=' + this.selectedSyncBoard.id +
       '&token=' + this.sync_user['trello_auth_token']).subscribe(trelloBoardReturn => {
       console.log(trelloBoardReturn);
       this.columnCreateObjects = <any[]>trelloBoardReturn;
@@ -182,7 +183,7 @@ export class DashboardComponent {
     const convertedColumn = {
       name: this.columnCreateObjects[iteration].name
     };
-    this1.http.post('http://localhost:5000/createColumn?token=' + this1.auth_token + '&boardId=' +
+    this1.http.post(config.SERVER + ':5000/createColumn?token=' + this1.auth_token + '&boardId=' +
       this1.selectedGloBoard.id, convertedColumn).subscribe(createCol => {
         this.cardCreateObjects = this.columnCreateObjects[iteration].cards;
         this.cardCreateCount = 0;
@@ -213,13 +214,13 @@ export class DashboardComponent {
       },
       column_id: currentColumn.id
     };
-    this1.http.post('http://localhost:5000/createCard?token=' + this1.auth_token + '&boardId=' +
+    this1.http.post(config.SERVER + ':5000/createCard?token=' + this1.auth_token + '&boardId=' +
       this1.selectedGloBoard.id, convertedCard).subscribe(createCard => {
         const createdCard = <any>createCard;
 
 
 
-      this1.http.get('http://localhost:5000/getTrelloCardActions?token=' + this.sync_user['trello_auth_token'] + '&card_id=' +
+      this1.http.get(config.SERVER + ':5000/getTrelloCardActions?token=' + this.sync_user['trello_auth_token'] + '&card_id=' +
         this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].id).subscribe(actionsReturn => {
         const actions = <any[]>actionsReturn;
         actions.filter(comment => comment.type === 'commentCard').forEach(comment => {
@@ -227,7 +228,7 @@ export class DashboardComponent {
           const convertedComment = {
             text: comment.data.text
           };
-          this1.http.post('http://localhost:5000/createComment?token=' + this1.auth_token + '&boardId=' +
+          this1.http.post(config.SERVER + ':5000/createComment?token=' + this1.auth_token + '&boardId=' +
             this1.selectedGloBoard.id + '&cardId=' + createdCard.id, convertedComment).subscribe(createComment => {
           });
         });
