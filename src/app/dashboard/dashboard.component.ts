@@ -164,35 +164,37 @@ export class DashboardComponent {
     // Get Trello board information (columns and cards)
     this.http.get(config.SERVER + ':5000/getTrelloBoardList?board_id=' + this.selectedSyncBoard.id +
       '&token=' + this.sync_user['trello_auth_token']).subscribe(trelloBoardReturn => {
-      console.log(trelloBoardReturn);
+      console.log('columnCreateObjects', trelloBoardReturn);
       this.columnCreateObjects = <any[]>trelloBoardReturn;
       this.columnCreateCount = 0;
       this.totalColumnCreateCount = this.columnCreateObjects.length - 1;
       // Create the columns in glo
       if (this.totalColumnCreateCount !== 0) {
-        this.createColumn(this.columnCreateCount);
+        this.createColumn();
       }
     });
   }
 
   private addToSyncDatabase() {}
 
-  public createColumn(iteration) {
-    // console.log('column #', this.columnCreateCount, 'out of', this.totalColumnCreateCount);
+  public createColumn() {
+    console.log('column #', this.columnCreateCount, 'out of', this.totalColumnCreateCount);
     const this1 = this;
     const convertedColumn = {
-      name: this.columnCreateObjects[iteration].name
+      name: this.columnCreateObjects[this.columnCreateCount].name
     };
     this1.http.post(config.SERVER + ':5000/createColumn?token=' + this1.auth_token + '&boardId=' +
       this1.selectedGloBoard.id, convertedColumn).subscribe(createCol => {
-        this.cardCreateObjects = this.columnCreateObjects[iteration].cards;
+        this.cardCreateObjects = this.columnCreateObjects[this.columnCreateCount].cards;
         this.cardCreateCount = 0;
-        this.totalCardCreateCount = this.columnCreateObjects[iteration].cards.length - 1;
+        this.totalCardCreateCount = this.columnCreateObjects[this.columnCreateCount].cards.length - 1;
         if (this.cardCreateCount <= this.totalCardCreateCount) {
           this.createCard(createCol);
         } else {
-          this.columnCreateCount++;
-          this.createColumn(this.columnCreateCount);
+          if (this.columnCreateCount < this.totalColumnCreateCount) {
+            this.columnCreateCount++;
+            this.createColumn();
+          }
         }
     });
   }
@@ -224,7 +226,7 @@ export class DashboardComponent {
         this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].id).subscribe(actionsReturn => {
         const actions = <any[]>actionsReturn;
         actions.filter(comment => comment.type === 'commentCard').forEach(comment => {
-          console.log('comment', comment.data.text);
+          // console.log('comment', comment.data.text);
           const convertedComment = {
             text: comment.data.text
           };
@@ -243,7 +245,7 @@ export class DashboardComponent {
         // console.log('end of this column ^');
         if (this.columnCreateCount < this.totalColumnCreateCount) {
           this.columnCreateCount++;
-          this.createColumn(this.columnCreateCount);
+          this.createColumn();
         }
       }
     });

@@ -74,7 +74,9 @@
     Sync Boards
   </p-header>
   Please select the boards you'd like to sync. A sync can only be initialized on empty Glo boards with no columns.
-  <div *ngIf="emptyGloBoards !== undefined && emptyGloBoards.length !== 0" class="ui-g">
+  <div *ngIf="
+    (emptyGloBoards !== undefined && emptyGloBoards.length !== 0) &&
+    (trello_boards !== undefined && trello_boards.length !== 0)" class="ui-g">
     <div class="ui-g-4">
       <span>Glo Board</span>
       <p-dropdown [options]="emptyGloBoards" optionLabel="name" appendTo="body" [(ngModel)]="selectedGloBoard"></p-dropdown>
@@ -91,7 +93,9 @@
   <div *ngIf="emptyGloBoards !== undefined && emptyGloBoards.length === 0">
     <p class="no-boards">You have no empty Glo boards</p>
   </div>
-  <p-footer>
+  <p-footer *ngIf="
+    (emptyGloBoards !== undefined && emptyGloBoards.length !== 0) &&
+    (trello_boards !== undefined && trello_boards.length !== 0)">
     <button pButton class="new-button active" type="button" label="Sync Boards" (click)="submitAddModal()">Sync Boards</button>
   </p-footer>
 </p-dialog>
