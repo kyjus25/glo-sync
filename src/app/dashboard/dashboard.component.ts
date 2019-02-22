@@ -35,9 +35,10 @@ export class DashboardComponent {
   private trello_user;
   public boards = [
     {
-      'sync-type': 'trello',
-      'glo-board': 'jira-tool',
-      'trello-board': 'fake101'
+      'sync-type': 'Trello',
+      'glo-board': 'Test',
+      'trello-board': 'Fake Data',
+      '2-way': 'No'
     }
   ];
   constructor(
@@ -103,9 +104,12 @@ export class DashboardComponent {
   public getSyncUser() {
     this.http.get('http://localhost:5000/getSyncUser?glo_id=' + this.glo_user.id).subscribe(sync_user => {
       this.sync_user = sync_user;
-      console.log(this.sync_user);
+      console.log('sync user', this.sync_user);
       if (this.sync_user['trello_auth_token'] !== '') {
         this.getTrelloUser();
+      } else {
+        this.trello_user = null;
+        this.trello_boards = null;
       }
     });
   }
@@ -120,6 +124,7 @@ export class DashboardComponent {
     this.http.get('http://localhost:5000/setToken?type=trello&token=' + this.token + '&glo_id=' + this.glo_user.id).subscribe(res => {
       this.token = '';
       this.tokenModalDisplay = false;
+      this.getSyncUser();
     });
   }
   private getTrelloUser() {
@@ -137,8 +142,20 @@ export class DashboardComponent {
     });
   }
 
+  public removeToken() {
+    this.http.get('http://localhost:5000/setToken?type=trello&token=&glo_id=' + this.glo_user.id).subscribe(res => {
+      this.token = '';
+      this.tokenModalDisplay = false;
+      this.getSyncUser();
+    });
+  }
+
 
   public submitAddModal() {
+    this.addModalDisplay = false;
+
+    this.addToSyncDatabase();
+
     console.log('selected sync board', this.selectedSyncBoard);
     console.log('selected glo board', this.selectedGloBoard);
     console.log('selected sync type', this.selectedSyncType);
@@ -156,6 +173,8 @@ export class DashboardComponent {
       }
     });
   }
+
+  private addToSyncDatabase() {}
 
   public createColumn(iteration) {
     // console.log('column #', this.columnCreateCount, 'out of', this.totalColumnCreateCount);

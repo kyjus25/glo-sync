@@ -13,13 +13,15 @@ import {DialogModule} from 'primeng/dialog';
 import {DropdownModule, InputTextModule} from 'primeng/primeng';
 import {FormsModule} from '@angular/forms';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {NavbarComponent} from './shared/navbar/navbar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     DashboardComponent,
-    LoginComponent
+    LoginComponent,
+    NavbarComponent
   ],
   imports: [
     BrowserModule,

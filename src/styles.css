@@ -3,9 +3,25 @@
 @import '../node_modules/primeng/resources/primeng.min.css';
 @import '../node_modules/primeicons/primeicons.css';
 @import 'https://use.fontawesome.com/releases/v5.7.2/css/all.css';
+@import url('https://fonts.googleapis.com/css?family=Roboto:100,300,400,700');
 
 body {
   background-color: #14141F;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+}
+#bg {
+  opacity: 0.03;
+  background-image: url(https://www.gitkraken.com/downloads/brand-assets/gitkraken-keif-mono-teal-sq.svg);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  z-index: -1;
 }
 h1 {
   text-align: center;
@@ -17,6 +33,62 @@ p-dropdown .ui-dropdown {
   width: 80% !important;
 }
 .wrapper {
-  max-width: 600px;
+  max-width: 900px;
   margin: auto;
+}
+h1 {
+  color: rgba(248, 235, 184, 255);
+  font-size: 40px;
+}
+.ui-table .ui-table-tbody > tr,
+.ui-table .ui-table-thead > tr > th,
+.ui-table .ui-table-tfoot > tr > td,
+.ui-table .ui-table-tbody > tr > td {
+  background-color: transparent;
+  border: none;
+  color: #d0d0d2;
+}
+.ui-table .ui-table-thead > tr > th {
+  padding: 8px 20px;
+  font-weight: 300;
+  text-align: left;
+  border-bottom: 2px solid #d0d0d2;
+}
+.ui-table .ui-table-tbody > tr > td {
+  padding: 8px 20px;
+  font-weight: 300;
+  text-align: left;
+}
+
+.ui-dialog {
+  border: none;
+}
+.ui-dialog .ui-widget-content {
+  background-color: #262633;
+  color: #E0F1F6 !important;
+}
+.ui-dialog .ui-widget-header {
+  background: #1F2B37 !important;
+  color: #E0F1F6 !important;
+  border-bottom: 1px solid black;
+}
+.ui-dialog-titlebar-close {
+  color: #E0F1F6 !important;
+}
+.ui-dialog-titlebar-close:hover {
+  color: black !important;
+}
+.ui-dialog .new-button:focus {
+  outline: none;
+}
+.ui-dialog .ui-g-4 > span {
+  color: rgba(248, 235, 184, 255);
+  display: block;
+  margin: 10px 0;
+}
+input {
+  width: 100% !important;
+  background-color: rgba(255,255,255,0.2);
+  padding: 10px;
+  color: white;
 }

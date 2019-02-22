@@ -1,0 +1,18 @@
+<header>
+  <div id="sitename">
+    <a routerLink="/">
+      <img style="max-width: 50px;" src="https://www.gitkraken.com/downloads/brand-assets/gitkraken-keif-mono-teal-sq.svg">
+      <span>Glo</span><span>Sync</span>
+    </a>
+  </div>
+  <nav>
+    <ul>
+      <li>
+        <a *ngIf="status === 'login'" routerLink="/login">Sign in with GitKraken</a>
+        <a *ngIf="status === 'logout'" routerLink="/">Sign Out</a>
+      </li>
+    </ul>
+  </nav>
+
+</header>
+

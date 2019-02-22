@@ -1,3 +1,5 @@
+<app-navbar [status]="'logout'"></app-navbar>
+
 <div class="wrapper">
   <h1>Authentication</h1>
 
@@ -5,29 +7,31 @@
     <div class="ui-g-3">
       <i class="fab fa-gitlab"></i><br>
       GitLab<br>
-      <span>Log In</span>
+      <span class="login">Log In</span>
     </div>
     <div class="ui-g-3">
       <i class="fab fa-bitbucket"></i><br>
       BitBucket<br>
-      <span>Log In</span>
+      <span class="login">Log In</span>
     </div>
     <div class="ui-g-3">
       <i class="fab fa-jira"></i><br>
       Jira<br>
-      <span>Log In</span>
+      <span class="login">Log In</span>
     </div>
     <div class="ui-g-3">
       <i class="fab fa-trello"></i><br>
       Trello<br>
-      <span *ngIf="sync_user === undefined || sync_user['trello_auth_token'] === ''" (click)="authTrelloModal()">Log In</span>
-      <span *ngIf="sync_user !== undefined && sync_user['trello_auth_token'] !== ''" (click)="authTrelloModal()">Log Out</span>
+      <span *ngIf="(sync_user === undefined || sync_user.hasOwnProperty('status')) || sync_user['trello_auth_token'] === ''" (click)="authTrelloModal()" class="login">Log In</span>
+      <span *ngIf="(sync_user !== undefined && !sync_user.hasOwnProperty('status')) && sync_user['trello_auth_token'] !== ''" (click)="removeToken()" class="logout">Log Out</span>
     </div>
   </div>
 
   <h1>Synced Boards</h1>
 
-  <span (click)="toggleModalDisplay()">New Synced Board</span>
+  <div class="center-text">
+    <span (click)="toggleModalDisplay()" class="new-button {{trello_boards !== null}}">New Synced Board</span>
+  </div>
 
   <p-table [value]="boards">
     <ng-template pTemplate="header">
@@ -35,7 +39,8 @@
         <th>Type</th>
         <th>Glo Board</th>
         <th>Trello Board</th>
-        <th>Actions</th>
+        <th>2-Way Sync</th>
+        <th style="width: 210px">Actions</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-board>
@@ -43,7 +48,11 @@
         <td>{{board['sync-type']}}</td>
         <td>{{board['glo-board']}}</td>
         <td>{{board['trello-board']}}</td>
-        <td>edit | delete</td>
+        <td>{{board['2-way']}}</td>
+        <td>
+          <span class="edit-button">Edit</span>
+          <span class="delete-button" style="margin-left: 10px">Delete</span>
+        </td>
       </tr>
     </ng-template>
   </p-table>
@@ -54,9 +63,9 @@
     Trello Token
   </p-header>
   <p>Please enter the authorization token provided by the Trello OAuth window.</p>
-  <input style="width: 100% !important" type="text" pInputText [(ngModel)]="token"/>
+  <input type="text" pInputText [(ngModel)]="token"/>
   <p-footer>
-    <button pButton type="button" label="Submit Token" (click)="submitTrelloModal()">Submit Token</button>
+    <button pButton class="new-button active" type="button" label="Submit Token" (click)="submitTrelloModal()">Submit Token</button>
   </p-footer>
 </p-dialog>
 
@@ -65,22 +74,25 @@
     Sync Boards
   </p-header>
   Please select the boards you'd like to sync. A sync can only be initialized on empty Glo boards with no columns.
-  <div class="ui-g">
+  <div *ngIf="emptyGloBoards !== undefined && emptyGloBoards.length !== 0" class="ui-g">
     <div class="ui-g-4">
-      Glo Board<br>
+      <span>Glo Board</span>
       <p-dropdown [options]="emptyGloBoards" optionLabel="name" appendTo="body" [(ngModel)]="selectedGloBoard"></p-dropdown>
     </div>
     <div class="ui-g-4">
-      Sync With<br>
+      <span>Sync With</span>
       <p-dropdown [options]="syncTypes" appendTo="body" [(ngModel)]="selectedSyncType"></p-dropdown>
     </div>
     <div class="ui-g-4">
-      Synced Board<br>
+      <span>Synced Board</span>
       <p-dropdown [options]="syncBoards" optionLabel="name" appendTo="body" [(ngModel)]="selectedSyncBoard"></p-dropdown>
     </div>
   </div>
+  <div *ngIf="emptyGloBoards !== undefined && emptyGloBoards.length === 0">
+    <p class="no-boards">You have no empty Glo boards</p>
+  </div>
   <p-footer>
-    <button pButton type="button" label="Submit Token" (click)="submitAddModal()">Sync Boards</button>
+    <button pButton class="new-button active" type="button" label="Sync Boards" (click)="submitAddModal()">Sync Boards</button>
   </p-footer>
 </p-dialog>
 
