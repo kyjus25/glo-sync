@@ -1,0 +1,13 @@
+.center {
+  height: calc(100vh - 71px);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.center p {
+  color: rgba(248, 235, 184, 255);
+  margin: 0;
+  font-weight: 300;
+}

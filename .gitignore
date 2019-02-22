@@ -19,9 +19,5 @@ target/
 dist/
 release-builds
 
-#testing
-src/app/home/
-src/app/test/
-
 # Config
 src/config.json
