@@ -69,34 +69,34 @@
   </p-footer>
 </p-dialog>
 
-<p-dialog [modal]="true" [(visible)]="addModalDisplay">
+<p-dialog [modal]="true" [(visible)]="addModalDisplay" [width]="'600'">
   <p-header>
     Sync Boards
   </p-header>
-  Please select the boards you'd like to sync. A sync can only be initialized on empty Glo boards with no columns.
-  <div *ngIf="
-    (emptyGloBoards !== undefined && emptyGloBoards.length !== 0) &&
-    (trello_boards !== undefined && trello_boards.length !== 0)" class="ui-g">
-    <div class="ui-g-4">
-      <span>Glo Board</span>
-      <p-dropdown [options]="emptyGloBoards" optionLabel="name" appendTo="body" [(ngModel)]="selectedGloBoard"></p-dropdown>
-    </div>
-    <div class="ui-g-4">
-      <span>Sync With</span>
+  <p style="text-align: center;">Please select the board you'd like to sync.</p>
+  <div *ngIf="trello_boards !== undefined && trello_boards.length !== 0" class="ui-g">
+    <div class="ui-g-6" style="text-align: center;">
+      <p>Sync With</p>
       <p-dropdown [options]="syncTypes" appendTo="body" [(ngModel)]="selectedSyncType"></p-dropdown>
     </div>
-    <div class="ui-g-4">
-      <span>Synced Board</span>
+    <div class="ui-g-6" style="text-align: center;">
+      <p>Synced Board</p>
       <p-dropdown [options]="syncBoards" optionLabel="name" appendTo="body" [(ngModel)]="selectedSyncBoard"></p-dropdown>
     </div>
   </div>
-  <div *ngIf="emptyGloBoards !== undefined && emptyGloBoards.length === 0">
-    <p class="no-boards">You have no empty Glo boards</p>
-  </div>
-  <p-footer *ngIf="
-    (emptyGloBoards !== undefined && emptyGloBoards.length !== 0) &&
-    (trello_boards !== undefined && trello_boards.length !== 0)">
+  <p-footer *ngIf="trello_boards !== undefined && trello_boards.length !== 0">
     <button pButton class="new-button active" type="button" label="Sync Boards" (click)="submitAddModal()">Sync Boards</button>
   </p-footer>
+</p-dialog>
+
+<p-dialog [modal]="true" *ngIf="showSyncModal" [(visible)]="showSyncModal" [width]="'600'">
+  <p-header>
+    Syncing {{createdGloBoard.name}}
+  </p-header>
+  <p style="text-align: center;" *ngIf="syncing">Your {{selectedSyncType.label}} board is syncing.</p>
+  <p style="text-align: center;" *ngIf="syncing">You can close this modal but please do not navigate away or refresh the page.</p>
+
+  <p style="text-align: center;" *ngIf="!syncing">Your {{selectedSyncType.label}} board has finished syncing.</p>
+  <p style="text-align: center;" *ngIf="!syncing">To complete the process, please add this webhook to your new Glo board</p>
 </p-dialog>
 

@@ -10,17 +10,11 @@ const config = require('../../config.json');
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent {
-  private totalColumnCreateCount: number;
-  private columnCreateCount: number;
-  private columnCreateObjects;
-  private totalCardCreateCount: number;
-  private cardCreateCount: number;
-  private cardCreateObjects;
-
-  public selectedGloBoard;
+  public syncing = false;
+  public showSyncModal = false;
+  public createdGloBoard;
   public selectedSyncType;
   public selectedSyncBoard;
-  public emptyGloBoards;
   public syncTypes = [
     {label: 'Trello', value: 'Trello'}
   ];
@@ -56,7 +50,6 @@ export class DashboardComponent {
     this.addModalDisplay = true;
     this.syncBoards = this.trello_boards;
     this.selectedSyncType = this.syncTypes[0];
-    this.selectedGloBoard = this.emptyGloBoards[0];
     this.selectedSyncBoard = this.trello_boards[0];
   }
 
@@ -89,17 +82,10 @@ export class DashboardComponent {
       this.glo_boards = glo_boards;
       if (this.glo_boards.message === 'Auth token not provided') {
         window.location.replace('/#/');
-      } else {
-        this.getEmptyBoards();
       }
     }, error => {
       window.location.replace('/#/');
     });
-  }
-
-  public getEmptyBoards() {
-    this.emptyGloBoards = this.glo_boards.filter(board => board.columns.length === 0);
-    console.log(this.emptyGloBoards);
   }
 
   public getSyncUser() {
@@ -155,98 +141,142 @@ export class DashboardComponent {
   public submitAddModal() {
     this.addModalDisplay = false;
 
-    this.addToSyncDatabase();
-
     console.log('selected sync board', this.selectedSyncBoard);
-    console.log('selected glo board', this.selectedGloBoard);
     console.log('selected sync type', this.selectedSyncType);
+    this.createBoard();
+  }
 
-    // Get Trello board information (columns and cards)
+  private createBoard() {
+    console.log('creating board ' + this.selectedSyncBoard.name);
+    const this1 = this;
+    const convertedBoard = {
+      name: this.selectedSyncBoard.name
+    };
+    this1.http.post(config.SERVER + ':5000/createBoard?token=' + this1.auth_token, convertedBoard).subscribe(createdBoardRes => {
+      this.createdGloBoard = createdBoardRes;
+      this.syncing = true;
+      this.showSyncModal = true;
+      this.beginCreateColumns();
+    });
+  }
+
+  private beginCreateColumns() {
     this.http.get(config.SERVER + ':5000/getTrelloBoardList?board_id=' + this.selectedSyncBoard.id +
       '&token=' + this.sync_user['trello_auth_token']).subscribe(trelloBoardReturn => {
       console.log('columnCreateObjects', trelloBoardReturn);
-      this.columnCreateObjects = <any[]>trelloBoardReturn;
-      this.columnCreateCount = 0;
-      this.totalColumnCreateCount = this.columnCreateObjects.length - 1;
-      // Create the columns in glo
-      if (this.totalColumnCreateCount !== 0) {
-        this.createColumn();
+      const columns = <any[]>trelloBoardReturn;
+      const current = 0;
+      const max = columns.length;
+      const gloColumnIDs = [];
+      if (max !== 0) {
+        this.createColumns(gloColumnIDs, current, max, columns);
+      } else {
+        this.syncing = false;
       }
     });
   }
 
-  private addToSyncDatabase() {}
+  private beginCreateCards(gloColumnIDs, columns) {
+    columns.forEach(column => {
+      const current = 0;
+      const max = column.cards.length;
+      const gloColumnID = gloColumnIDs[column.id];
+      const gloCardIDs = [];
+      if (max !== 0) {
+        this.createCards(gloCardIDs, current, max, gloColumnID, column, columns);
+      } else {
+        this.syncing = false;
+      }
+    });
+  }
 
-  public createColumn() {
-    console.log('column #', this.columnCreateCount, 'out of', this.totalColumnCreateCount);
+  private beginCreateComments(gloCardIDs, columns) {
+    columns.forEach(column => {
+      column.cards.forEach(card => {
+
+        this.http.get(config.SERVER + ':5000/getTrelloCardActions?token=' + this.sync_user['trello_auth_token'] + '&card_id=' +
+          card.id).subscribe(actionsReturn => {
+
+          const actions = <any[]>actionsReturn;
+
+          if (Array.isArray(actions) && actions.length > 0) {
+            const comments = actions.filter(comment => comment.type === 'commentCard' || comment.type === 'addAttachmentToCard');
+
+            const gloCardID = gloCardIDs[card.id];
+            const current = 0;
+            const max = comments.length;
+            if (max !== 0) {
+              this.createComments(gloCardIDs, current, max, gloCardID, card, comments, columns);
+            }
+          } else {
+            console.log('actions was not an array or was empty. Skipping.');
+          }
+        });
+      });
+    });
+  }
+
+  private createColumns(gloColumnIDs, current, max, columns) {
+    console.log('column #', current + 1, 'out of', max);
     const this1 = this;
     const convertedColumn = {
-      name: this.columnCreateObjects[this.columnCreateCount].name
+      name: columns[current].name
     };
     this1.http.post(config.SERVER + ':5000/createColumn?token=' + this1.auth_token + '&boardId=' +
-      this1.selectedGloBoard.id, convertedColumn).subscribe(createCol => {
-        this.cardCreateObjects = this.columnCreateObjects[this.columnCreateCount].cards;
-        this.cardCreateCount = 0;
-        this.totalCardCreateCount = this.columnCreateObjects[this.columnCreateCount].cards.length - 1;
-        if (this.cardCreateCount <= this.totalCardCreateCount) {
-          this.createCard(createCol);
+      this1.createdGloBoard.id, convertedColumn).subscribe(createdColumnRes => {
+        const createdColumn = <any>createdColumnRes;
+        gloColumnIDs[columns[current].id] = createdColumn.id;
+        if (current < max - 1) {
+          current++;
+          this.createColumns(gloColumnIDs, current, max, columns);
         } else {
-          if (this.columnCreateCount < this.totalColumnCreateCount) {
-            this.columnCreateCount++;
-            this.createColumn();
-          }
+          this.beginCreateCards(gloColumnIDs, columns);
         }
     });
   }
 
-  public createCard(currentColumn) {
+  private createCards(gloCardIDs, current, max, gloColumnID, column, columns) {
     const this1 = this;
-    // console.log('column #', this.columnCreateCount);
-    // console.log('card #', this.cardCreateCount, 'out of', this.totalCardCreateCount);
-    // console.log(this.columnCreateObjects[this.columnCreateCount].name);
-    // console.log(this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].name);
-
-    const date = new Date(this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].due);
-    const stringDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' +  date.getFullYear();
     const convertedCard = {
-      name: this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].name,
-      due_date: this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].due,
+      name: column.cards[current].name,
+      due_date: column.cards[current].due,
       description: {
-        text: this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].desc
+        text: column.cards[current].desc
       },
-      column_id: currentColumn.id
+      column_id: gloColumnID
     };
     this1.http.post(config.SERVER + ':5000/createCard?token=' + this1.auth_token + '&boardId=' +
-      this1.selectedGloBoard.id, convertedCard).subscribe(createCard => {
-        const createdCard = <any>createCard;
-
-
-
-      this1.http.get(config.SERVER + ':5000/getTrelloCardActions?token=' + this.sync_user['trello_auth_token'] + '&card_id=' +
-        this.columnCreateObjects[this.columnCreateCount].cards[this.cardCreateCount].id).subscribe(actionsReturn => {
-        const actions = <any[]>actionsReturn;
-        actions.filter(comment => comment.type === 'commentCard').forEach(comment => {
-          // console.log('comment', comment.data.text);
-          const convertedComment = {
-            text: comment.data.text
-          };
-          this1.http.post(config.SERVER + ':5000/createComment?token=' + this1.auth_token + '&boardId=' +
-            this1.selectedGloBoard.id + '&cardId=' + createdCard.id, convertedComment).subscribe(createComment => {
-          });
-        });
-      });
-
-
-
-      if (this.cardCreateCount < this.totalCardCreateCount) {
-        this.cardCreateCount++;
-        this.createCard(currentColumn);
+      this1.createdGloBoard.id, convertedCard).subscribe(createdCardRes => {
+      const createdCard = <any>createdCardRes;
+      gloCardIDs[column.cards[current].id] = createdCard.id;
+      if (current < max - 1) {
+        current++;
+        this.createCards(gloCardIDs, current, max, gloColumnID, column, columns);
       } else {
-        // console.log('end of this column ^');
-        if (this.columnCreateCount < this.totalColumnCreateCount) {
-          this.columnCreateCount++;
-          this.createColumn();
-        }
+        this.beginCreateComments(gloCardIDs, columns);
+      }
+    });
+  }
+
+  private createComments(gloCardIDs, current, max, gloCardID, card, comments, columns) {
+    let convertedComment;
+    if (comments[current].type === 'commentCard') {
+      convertedComment = {
+        text: comments[current].data.text
+      };
+    }
+    if (comments[current].type === 'addAttachmentToCard') {
+      convertedComment = {
+        text: '![image](' + comments[current].data.attachment.url + ')'
+      };
+    }
+    this.http.post(config.SERVER + ':5000/createComment?token=' + this.auth_token + '&boardId=' +
+      this.createdGloBoard.id + '&cardId=' + gloCardID, convertedComment).subscribe(createComment => {
+      if (current < max - 1) {
+        current++;
+        this.createComments(gloCardIDs, current, max, gloCardID, card, comments, columns);
+      } else {
+        this.syncing = false;
       }
     });
   }
