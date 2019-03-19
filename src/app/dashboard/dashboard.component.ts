@@ -28,14 +28,7 @@ export class DashboardComponent {
   private trello_boards;
   public sync_user;
   private trello_user;
-  public boards = [
-    {
-      'sync-type': 'Trello',
-      'glo-board': 'Test',
-      'trello-board': 'Fake Data',
-      '2-way': 'No'
-    }
-  ];
+  public boards = [];
   constructor(
     private http: HttpClient
   ) {
@@ -58,9 +51,39 @@ export class DashboardComponent {
     const parts = value.split('; ' + name + '=');
     if (parts.length === 2) { return parts.pop().split(';').shift(); }
   }
+
   private delete_cookie = function(name) {
     document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
   };
+
+  private addSyncBoard(sync_type, glo_board_id, trello_board_id) {
+    this.http.get(config.SERVER + ':5000/addSyncBoard' +
+      '?glo_id=' + this.glo_user.id +
+      '&sync_type=' + sync_type +
+      '&glo_board_id=' + glo_board_id +
+      '&trello_board_id=' + trello_board_id
+    ).subscribe(sync_boards => {
+      this.getSyncBoards();
+    });
+  }
+
+  private getSyncBoards() {
+    this.http.get(config.SERVER + ':5000/getSyncBoards?glo_id=' + this.glo_user.id).subscribe(syncBoardsRes => {
+      if (!syncBoardsRes.hasOwnProperty('status')) {
+        const syncBoards = <any[]>syncBoardsRes;
+        syncBoards.forEach(board => {
+          const glo_board = this.glo_boards.find(iteration => iteration.id === board.glo_board_id);
+          const trello_board = this.trello_boards.find(iteration => iteration.id === board.trello_board_id);
+          this.boards.push({
+            'sync-type': board.sync_type,
+            'glo-board': glo_board.name,
+            'synced-board': trello_board.name,
+            '2-way': 'No'
+          });
+        });
+      }
+    });
+  }
 
   public getUser() {
     this.http.get(config.SERVER + ':5000/getUser?token=' + this.auth_token).subscribe(glo_user => {
@@ -91,7 +114,6 @@ export class DashboardComponent {
   public getSyncUser() {
     this.http.get(config.SERVER + ':5000/getSyncUser?glo_id=' + this.glo_user.id).subscribe(sync_user => {
       this.sync_user = sync_user;
-      console.log('sync user', this.sync_user);
       if (this.sync_user['trello_auth_token'] !== '') {
         this.getTrelloUser();
       } else {
@@ -124,8 +146,8 @@ export class DashboardComponent {
   private getTrelloBoards() {
     this.http.get(config.SERVER + ':5000/getTrelloBoards?trello_id=' + this.trello_user.id +
       '&token=' + this.sync_user['trello_auth_token']).subscribe(res => {
-      console.log(res);
       this.trello_boards = res;
+      this.getSyncBoards();
     });
   }
 
@@ -154,6 +176,16 @@ export class DashboardComponent {
     };
     this1.http.post(config.SERVER + ':5000/createBoard?token=' + this1.auth_token, convertedBoard).subscribe(createdBoardRes => {
       this.createdGloBoard = createdBoardRes;
+
+      this.addSyncBoard(this.selectedSyncType.label, this.createdGloBoard.id, this.selectedSyncBoard.id);
+
+      this.boards.push({
+        'sync-type': this.selectedSyncType.label,
+        'glo-board': this.createdGloBoard.name,
+        'synced-board': this.selectedSyncBoard.name,
+        '2-way': 'No'
+      });
+
       this.syncing = true;
       this.showSyncModal = true;
       this.beginCreateColumns();

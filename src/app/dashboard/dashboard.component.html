@@ -30,7 +30,7 @@
   <h1>Synced Boards</h1>
 
   <div class="center-text">
-    <span (click)="toggleModalDisplay()" class="new-button {{trello_boards !== null}}">New Synced Board</span>
+    <span (click)="toggleModalDisplay()" class="new-button {{trello_boards !== null && !syncing}}">New Synced Board</span>
   </div>
 
   <p-table [value]="boards">
@@ -38,7 +38,7 @@
       <tr>
         <th>Type</th>
         <th>Glo Board</th>
-        <th>Trello Board</th>
+        <th>Synced Board</th>
         <th>2-Way Sync</th>
         <th style="width: 210px">Actions</th>
       </tr>
@@ -47,7 +47,7 @@
       <tr>
         <td>{{board['sync-type']}}</td>
         <td>{{board['glo-board']}}</td>
-        <td>{{board['trello-board']}}</td>
+        <td>{{board['synced-board']}}</td>
         <td>{{board['2-way']}}</td>
         <td>
           <span class="edit-button">Edit</span>
@@ -69,7 +69,7 @@
   </p-footer>
 </p-dialog>
 
-<p-dialog [modal]="true" [(visible)]="addModalDisplay" [width]="'600'">
+<p-dialog *ngIf="trello_boards !== null" [modal]="true" [(visible)]="addModalDisplay" [width]="'600'">
   <p-header>
     Sync Boards
   </p-header>

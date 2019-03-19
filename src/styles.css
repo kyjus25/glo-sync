@@ -44,9 +44,9 @@ h1 {
 .ui-table .ui-table-thead > tr > th,
 .ui-table .ui-table-tfoot > tr > td,
 .ui-table .ui-table-tbody > tr > td {
-  background-color: transparent;
-  border: none;
-  color: #d0d0d2;
+  background-color: transparent !important;
+  border: none !important;
+  color: #d0d0d2 !important;
 }
 .ui-table .ui-table-thead > tr > th {
   padding: 8px 20px;
