@@ -20,4 +20,5 @@ dist/
 release-builds
 
 # Config
-src/config.json
+be_config.json
+src/fe_config.json

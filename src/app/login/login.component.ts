@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Router} from '@angular/router';
-const config = require('../../config.json');
+const config = require('../../fe_config.json');
 
 @Component({
   selector: 'app-login',

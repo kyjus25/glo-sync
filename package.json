@@ -3,8 +3,7 @@
   "version": "1.1.0-SNAPSHOT",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "start-prod": "sudo ng serve --host 0.0.0.0 --port 80",
+    "start": "kill -9 $(lsof -t -i:80); npm run build; node server.js",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
@@ -28,7 +27,12 @@
     "primeng": "~7.0.5",
     "rxjs": "~6.3.3",
     "rxjs-compat": "~6.4.0",
-    "zone.js": "~0.8.26"
+    "zone.js": "~0.8.26",
+    "cors": "~2.8.5",
+    "express": "^4.16.4",
+    "json-lint": "~0.1.0",
+    "mysql": "~2.16.0",
+    "request": "~2.88.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.10.0",
